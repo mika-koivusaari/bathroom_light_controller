@@ -9,6 +9,12 @@ const String GET = "GET";
 const String HELP = "HELP";
 const String LOAD = "LOAD";
 const String SAVE = "SAVE";
+const String SET = "SET";
+const String SET_LDRDARK = "SET LDRDARK";
+const String SET_PWM1LOW = "SET PWM1LOW";
+const String SET_PWM1HIGH = "SET PWM1HIGH";
+const String SET_PWM2LOW = "SET PWM2LOW";
+const String SET_PWM2HIGH = "SET PWM2HIGH";
 
 const int MAX_CMD_LENGTH = 20;
 
@@ -89,70 +95,8 @@ void loop() {
     else if (inputString==SAVE) {
       writeConfig();
     }
-    else if (inputString.startsWith("SET")) {
-      //SET LDRDARK x
-      if (inputString.length()>=11 && inputString.startsWith("SET LDRDARK")) {
-        //Check that there is a parameter after command.
-        if (inputString.length()>12) {
-          iTmp=inputString.substring(12).toInt();
-          if (iTmp>=0 && iTmp<=1023) {
-            ldrDark=iTmp;
-            Serial.print("LDRDARK set to ");
-            Serial.println(ldrDark);
-          } else {
-            Serial.println("LDRDARK must be between 0 - 1023.");
-          }
-        } else {
-          Serial.println("SET LDRDARK must have a parameter between 0 - 1023.");
-        }
-      //SET PWM1LOW x
-      } else if (inputString.length()>=11 && inputString.startsWith("SET PWM1LOW")) {
-        //Check that there is a parameter after command.
-        if (inputString.length()>12) {
-          iTmp=inputString.substring(12).toInt();
-          if (iTmp>=0 && iTmp<=255) {
-            pwm1Low=iTmp;
-            Serial.print("PWM1LOW set to ");
-            Serial.println(pwm1Low);
-          } else {
-            Serial.println("PWM1LOW must be between 0 - 255.");
-          }
-        } else {
-          Serial.println("SET PWM1LOW must have a parameter between 0 - 255.");
-        }
-      //SET PWM2LOW x
-      } else if (inputString.length()>=11 && inputString.startsWith("SET PWM2LOW")) {
-        //Check that there is a parameter after command.
-        if (inputString.length()>12) {
-          iTmp=inputString.substring(12).toInt();
-          if (iTmp>=0 && iTmp<=255) {
-            pwm2Low=iTmp;
-            Serial.print("PWM2LOW set to ");
-            Serial.println(pwm2Low);
-          } else {
-            Serial.println("PWM2LOW must be between 0 - 255.");
-          }
-        } else {
-          Serial.println("SET PWM2LOW must have a parameter between 0 - 255.");
-        }
-      //SET PWM1HIGH x
-      } else if (inputString.length()>=12 && inputString.startsWith("SET PWM1HIGH")) {
-        //Check that there is a parameter after command.
-        if (inputString.length()>13) {
-          iTmp=inputString.substring(13).toInt();
-          if (iTmp>=0 && iTmp<=255) {
-            pwm2Low=iTmp;
-            Serial.print("PWM1HIGH set to ");
-            Serial.println(pwm1High);
-          } else {
-            Serial.println("PWM1HIGH must be between 0 - 255.");
-          }
-        } else {
-          Serial.println("SET PWM1HIGH must have a parameter between 0 - 255.");
-        }
-      } else {
-       Serial.println("Unkown command after SET, must be LDRDARK, PWM1HIGH, PWM2HIGH, PWM1LOW, PWM2LOW.");
-      } 
+    else if (inputString.startsWith(SET)) {
+      set();
     } else {
       Serial.println("Syntax error:");
       Serial.println("Try HELP");
@@ -242,6 +186,88 @@ void printConfig() {
   Serial.print("ldrDark=");
   Serial.println(ldrDark);
 }
+
+void set() {
+  //SET LDRDARK x
+  if (inputString.length()>=11 && inputString.startsWith(SET_LDRDARK)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>12) {
+      iTmp=inputString.substring(12).toInt();
+      if (iTmp>=0 && iTmp<=1023) {
+        ldrDark=iTmp;
+        Serial.print("LDRDARK set to ");
+        Serial.println(ldrDark);
+      } else {
+        Serial.println("LDRDARK must be between 0 - 1023.");
+      }
+    } else {
+      Serial.println("SET LDRDARK must have a parameter between 0 - 1023.");
+    }
+  //SET PWM1LOW x
+  } else if (inputString.length()>=11 && inputString.startsWith(SET_PWM1LOW)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>12) {
+      iTmp=inputString.substring(12).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        pwm1Low=iTmp;
+        Serial.print("PWM1LOW set to ");
+        Serial.println(pwm1Low);
+      } else {
+        Serial.println("PWM1LOW must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM1LOW must have a parameter between 0 - 255.");
+    }
+  //SET PWM2LOW x
+  } else if (inputString.length()>=11 && inputString.startsWith(SET_PWM2LOW)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>12) {
+      iTmp=inputString.substring(12).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        pwm2Low=iTmp;
+        Serial.print("PWM2LOW set to ");
+        Serial.println(pwm2Low);
+      } else {
+        Serial.println("PWM2LOW must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM2LOW must have a parameter between 0 - 255.");
+    }
+  //SET PWM1HIGH x
+  } else if (inputString.length()>=12 && inputString.startsWith(SET_PWM1HIGH)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>13) {
+      iTmp=inputString.substring(13).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        pwm2Low=iTmp;
+        Serial.print("PWM1HIGH set to ");
+        Serial.println(pwm1High);
+      } else {
+        Serial.println("PWM1HIGH must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM1HIGH must have a parameter between 0 - 255.");
+    }
+  //SET PWM2HIGH x
+  } else if (inputString.length()>=12 && inputString.startsWith(SET_PWM2HIGH)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>13) {
+      iTmp=inputString.substring(13).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        pwm2Low=iTmp;
+        Serial.print("PWM2HIGH set to ");
+        Serial.println(pwm2High);
+      } else {
+        Serial.println("PWM2HIGH must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM2HIGH must have a parameter between 0 - 255.");
+    }
+  } else {
+   Serial.println("Unkown command after SET, must be LDRDARK, PWM1HIGH, PWM2HIGH, PWM1LOW, PWM2LOW.");
+  } 
+}
+
 /*
   SerialEvent occurs whenever a new data comes in the
  hardware serial RX.  This routine is run between each
