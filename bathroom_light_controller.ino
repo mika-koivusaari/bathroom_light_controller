@@ -1,8 +1,9 @@
 #include <EEPROM.h>
 
 const int LDRPIN=A0;
-const int PWM1PIN=10;
-const int PWM2PIN=11;
+const int PWM1PIN=9;
+const int PWM2PIN=10;
+const int PWM3PIN=11;
 const int FORCELIGHTPIN=5;
 
 const String GET = "GET";
@@ -15,6 +16,8 @@ const String SET_PWM1LOW = "SET PWM1LOW";
 const String SET_PWM1HIGH = "SET PWM1HIGH";
 const String SET_PWM2LOW = "SET PWM2LOW";
 const String SET_PWM2HIGH = "SET PWM2HIGH";
+const String SET_PWM3LOW = "SET PWM3LOW";
+const String SET_PWM3HIGH = "SET PWM3HIGH";
 const String SET_LOOPDELAY = "SET LOOPDELAY";
 
 const int MAX_CMD_LENGTH = 20;
@@ -31,6 +34,8 @@ byte pwm1Goal=0;
 byte pwm1Current=0;
 byte pwm2Goal=0;
 byte pwm2Current=0;
+byte pwm3Goal=0;
+byte pwm3Current=0;
 
 //value of the LDR
 int ldrValue=0;
@@ -40,16 +45,18 @@ int forceLightValue=LOW;
 //high values of the led strips, read on startup
 byte pwm1High=255;
 byte pwm2High=255;
+byte pwm3High=255;
 
 //low values of the led strips, read on startup
 byte pwm1Low=50;
 byte pwm2Low=50;
+byte pwm3Low=50;
 
 //value of the ldr between dark and light
 int ldrDark=800;
 
 int debug=true;
-int loopDelay=50;
+byte loopDelay=50;
 
 //Temporary variable for commands data.
 int iTmp=0;
@@ -70,6 +77,7 @@ void setup() {
   //aseta pwm kanavat 1 ja 2
   pinMode(PWM1PIN,OUTPUT);
   pinMode(PWM2PIN,OUTPUT);
+  pinMode(PWM3PIN,OUTPUT);
   //aseta kytkimen luku pin
   pinMode(FORCELIGHTPIN,INPUT);
 }
@@ -120,12 +128,15 @@ void loop() {
     //aseta pwmtavoite kirkkaaksi
     pwm1Goal=pwm1High;
     pwm2Goal=pwm2High;
+    pwm3Goal=pwm3High;
   } else if (ldrValue>ldrDark) { //if hallway if lighted then make lights bright
     pwm1Goal=pwm1High;
     pwm2Goal=pwm2High;
+    pwm3Goal=pwm3High;
   } else {//otherwise make light dim
     pwm1Goal=pwm1Low;
     pwm2Goal=pwm2Low;
+    pwm3Goal=pwm3Low;
   }
   
   if (pwm1Current>pwm1Goal)
@@ -138,8 +149,14 @@ void loop() {
   else if (pwm2Current<pwm2Goal)
     pwm2Current++;
 
+  if (pwm3Current>pwm3Goal)
+    pwm3Current--;
+  else if (pwm3Current<pwm3Goal)
+    pwm3Current++;
+
   analogWrite(PWM1PIN,pwm1Current);
   analogWrite(PWM2PIN,pwm2Current);
+  analogWrite(PWM3PIN,pwm3Current);
 
 /*  Serial.print("pwm1Current=");
   Serial.print(pwm1Current);
@@ -162,7 +179,9 @@ void readConfig() {
     EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low),pwm1High);
     EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High),pwm2Low);
     EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low),pwm2High);
-    EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High),loopDelay);
+    EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High),pwm3Low);
+    EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High)+sizeof(pwm3Low),pwm3High);
+    EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High)+sizeof(pwm3Low)+sizeof(pwm3High),loopDelay);
     if (loopDelay>50) {
       loopDelay=50;
     }
@@ -180,7 +199,9 @@ void writeConfig() {
   EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low),pwm1High);
   EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High),pwm2Low);
   EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low),pwm2High);
-  EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High),loopDelay);
+  EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High),pwm3Low);
+  EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High)+sizeof(pwm3Low),pwm3High);
+  EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High)+sizeof(pwm3Low)+sizeof(pwm3High),loopDelay);
 }
 
 void printConfig() {
@@ -194,6 +215,10 @@ void printConfig() {
   Serial.println(pwm2Low);
   Serial.print("pwm2High=");
   Serial.println(pwm2High);
+  Serial.print("pwm3Low=");
+  Serial.println(pwm3Low);
+  Serial.print("pwm3High=");
+  Serial.println(pwm3High);
   Serial.print("ldrDark=");
   Serial.println(ldrDark);
 }
@@ -244,6 +269,21 @@ void set() {
     } else {
       Serial.println("SET PWM2LOW must have a parameter between 0 - 255.");
     }
+  //SET PWM3LOW x
+  } else if (inputString.length()>=11 && inputString.startsWith(SET_PWM3LOW)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>12) {
+      iTmp=inputString.substring(12).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        pwm3Low=iTmp;
+        Serial.print("PWM3LOW set to ");
+        Serial.println(pwm3Low);
+      } else {
+        Serial.println("PWM3LOW must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM3LOW must have a parameter between 0 - 255.");
+    }
   //SET PWM1HIGH x
   } else if (inputString.length()>=12 && inputString.startsWith(SET_PWM1HIGH)) {
     //Check that there is a parameter after command.
@@ -273,6 +313,21 @@ void set() {
       }
     } else {
       Serial.println("SET PWM2HIGH must have a parameter between 0 - 255.");
+    }
+  //SET PWM3HIGH x
+  } else if (inputString.length()>=12 && inputString.startsWith(SET_PWM3HIGH)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>13) {
+      iTmp=inputString.substring(13).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        pwm3Low=iTmp;
+        Serial.print("PWM3HIGH set to ");
+        Serial.println(pwm3High);
+      } else {
+        Serial.println("PWM3HIGH must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM3HIGH must have a parameter between 0 - 255.");
     }
   //SET LOOPDELAY x
   } else if (inputString.length()>=13 && inputString.startsWith(SET_LOOPDELAY)) {
