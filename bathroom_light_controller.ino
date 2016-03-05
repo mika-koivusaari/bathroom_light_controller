@@ -15,6 +15,7 @@ const String SET_PWM1LOW = "SET PWM1LOW";
 const String SET_PWM1HIGH = "SET PWM1HIGH";
 const String SET_PWM2LOW = "SET PWM2LOW";
 const String SET_PWM2HIGH = "SET PWM2HIGH";
+const String SET_LOOPDELAY = "SET LOOPDELAY";
 
 const int MAX_CMD_LENGTH = 20;
 
@@ -62,6 +63,7 @@ void setup() {
   inputString.reserve(MAX_CMD_LENGTH);
 
   readConfig();
+  printConfig();
     
   //aseta ldr lukupin
   pinMode(LDRPIN,INPUT);
@@ -88,6 +90,7 @@ void loop() {
       Serial.println("GET");
       Serial.println("SET");
     }
+    
     else if (inputString==LOAD) {
       readConfig();
       printConfig();
@@ -159,6 +162,13 @@ void readConfig() {
     EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low),pwm1High);
     EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High),pwm2Low);
     EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low),pwm2High);
+    EEPROM.get(sizeof(bTmp)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High),loopDelay);
+    if (loopDelay>50) {
+      loopDelay=50;
+    }
+    if (loopDelay<0) {
+      loopDelay=0;
+    }
   }
 }
 
@@ -170,6 +180,7 @@ void writeConfig() {
   EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low),pwm1High);
   EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High),pwm2Low);
   EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low),pwm2High);
+  EEPROM.put(sizeof(byte)+sizeof(ldrDark)+sizeof(pwm1Low)+sizeof(pwm1High)+sizeof(pwm2Low)+sizeof(pwm2High),loopDelay);
 }
 
 void printConfig() {
@@ -259,6 +270,21 @@ void set() {
         Serial.println(pwm2High);
       } else {
         Serial.println("PWM2HIGH must be between 0 - 255.");
+      }
+    } else {
+      Serial.println("SET PWM2HIGH must have a parameter between 0 - 255.");
+    }
+  //SET LOOPDELAY x
+  } else if (inputString.length()>=13 && inputString.startsWith(SET_LOOPDELAY)) {
+    //Check that there is a parameter after command.
+    if (inputString.length()>13) {
+      iTmp=inputString.substring(13).toInt();
+      if (iTmp>=0 && iTmp<=255) {
+        loopDelay=iTmp;
+        Serial.print("LOOPDELAY set to ");
+        Serial.println(loopDelay);
+      } else {
+        Serial.println("LOOPDELAY must be between 0 - 255.");
       }
     } else {
       Serial.println("SET PWM2HIGH must have a parameter between 0 - 255.");
