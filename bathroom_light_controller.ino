@@ -24,11 +24,6 @@ const int MAX_CMD_LENGTH = 20;
 
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
-
-/* muuttujat
- * pwm tavoite
- * pwm nykyinen
- */
  
 byte pwm1Goal=0;
 byte pwm1Current=0;
@@ -72,13 +67,13 @@ void setup() {
   readConfig();
   printConfig();
     
-  //aseta ldr lukupin
+  //set ldr pin
   pinMode(LDRPIN,INPUT);
-  //aseta pwm kanavat 1 ja 2
+  //set pwm channels
   pinMode(PWM1PIN,OUTPUT);
   pinMode(PWM2PIN,OUTPUT);
   pinMode(PWM3PIN,OUTPUT);
-  //aseta kytkimen luku pin
+  //set forcelight switch input pin
   pinMode(FORCELIGHTPIN,INPUT);
 }
 
@@ -118,14 +113,14 @@ void loop() {
     stringComplete = false;
   }
 
-  //lue kirkkaaksi pakottavan kytkimen tila
+  //Read if force light switch is on
   forceLightValue=digitalRead(FORCELIGHTPIN);
-  //lue ldr
+  //Read ldr
   ldrValue=analogRead(LDRPIN);
   
   //make light bright if force light is on
   if (forceLightValue==HIGH) {
-    //aseta pwmtavoite kirkkaaksi
+    //set pwm goal to high
     pwm1Goal=pwm1High;
     pwm2Goal=pwm2High;
     pwm3Goal=pwm3High;
@@ -138,7 +133,8 @@ void loop() {
     pwm2Goal=pwm2Low;
     pwm3Goal=pwm3Low;
   }
-  
+
+  //advance pwm values to goal
   if (pwm1Current>pwm1Goal)
     pwm1Current--;
   else if (pwm1Current<pwm1Goal)
@@ -158,12 +154,7 @@ void loop() {
   analogWrite(PWM2PIN,pwm2Current);
   analogWrite(PWM3PIN,pwm3Current);
 
-/*  Serial.print("pwm1Current=");
-  Serial.print(pwm1Current);
-  Serial.print(" pwm2Current=");
-  Serial.println(pwm2Current);*/
   delay(loopDelay);  
-  
 }
 
 void readConfig() {
